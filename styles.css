@@ -410,9 +410,18 @@ body {
 }
 
 .puzzle-grid.completed {
-    max-width: 90%;
-    width: auto;
+    max-width: min(90vw, 500px);
+    width: 100%;
     margin: 0 auto;
+    position: relative;
+}
+
+.puzzle-container:has(.puzzle-grid.completed) {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 100vh !important;
 }
 
 .puzzle-slot {

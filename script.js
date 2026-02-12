@@ -196,74 +196,185 @@ function setupPuzzle() {
         }
         
         // Animate puzzle completion - remove grid lines and show full image
+        let transitionTimeout = null;
+        let isPaused = false;
+        let pauseHandler = null;
+        let resumeHandler = null;
+        let timeoutStartTime = null;
+        let remainingTime = 3000;
+        
         function animatePuzzleCompletion() {
             const puzzleTitle = document.querySelector('.puzzle-title');
-            const puzzleContainer = document.querySelector('.puzzle-container');
+            const solveBtn = document.getElementById('btn-solve-auto');
+            const puzzleReference = document.querySelector('.puzzle-reference');
             
-            // Hide the tray and title
-            puzzleTray.style.opacity = '0';
-            puzzleTray.style.transform = 'translateY(20px)';
-            puzzleTray.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-            setTimeout(() => {
-                puzzleTray.style.display = 'none';
-            }, 300);
+            // Reset pause state
+            isPaused = false;
+            remainingTime = 2000; // 2 seconds for showing the image
+            timeoutStartTime = null;
             
-            if (puzzleTitle) {
-                puzzleTitle.style.opacity = '0';
-                puzzleTitle.style.transform = 'translateY(-10px)';
-                puzzleTitle.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                setTimeout(() => {
-                    puzzleTitle.style.display = 'none';
-                }, 300);
+            // Remove any existing pause/resume handlers
+            if (pauseHandler) {
+                puzzleGrid.removeEventListener('pointerdown', pauseHandler, { capture: true });
+                puzzleGrid.removeEventListener('touchstart', pauseHandler, { capture: true });
+            }
+            if (resumeHandler) {
+                puzzleGrid.removeEventListener('pointerup', resumeHandler, { capture: true });
+                puzzleGrid.removeEventListener('touchend', resumeHandler, { capture: true });
+                puzzleGrid.removeEventListener('pointercancel', resumeHandler, { capture: true });
             }
             
-            // Remove grid gaps and borders to create seamless image
-            puzzleGrid.style.gap = '0';
-            puzzleGrid.style.padding = '0';
-            puzzleGrid.style.background = 'transparent';
-            puzzleGrid.style.borderRadius = '12px';
-            puzzleGrid.style.overflow = 'hidden';
-            puzzleGrid.style.margin = '0 auto';
-            puzzleGrid.style.maxWidth = 'min(90vw, 500px)';
-            puzzleGrid.style.width = '100%';
-            puzzleGrid.classList.add('completed');
-            
-            // Center and size the container better
-            if (puzzleContainer) {
-                puzzleContainer.style.display = 'flex';
-                puzzleContainer.style.flexDirection = 'column';
-                puzzleContainer.style.justifyContent = 'center';
-                puzzleContainer.style.alignItems = 'center';
-                puzzleContainer.style.padding = '20px';
-                puzzleContainer.style.minHeight = 'auto';
-            }
-            
-            // Remove borders from slots and make them seamless
-            slots.forEach(slot => {
-                slot.style.border = 'none';
-                slot.style.background = 'transparent';
-                slot.style.borderRadius = '0';
+            // Step 1: Hide ALL headers and buttons simultaneously (400ms)
+            const elementsToHide = [puzzleTitle, solveBtn, puzzleReference, puzzleTray];
+            elementsToHide.forEach(element => {
+                if (element) {
+                    element.style.opacity = '0';
+                    element.style.transition = 'opacity 0.4s ease';
+                    setTimeout(() => {
+                        element.style.display = 'none';
+                    }, 400);
+                }
             });
             
-            // Make all pieces show the full image seamlessly
-            const allPieces = puzzleGrid.querySelectorAll('.puzzle-piece');
-            allPieces.forEach((piece) => {
-                // Remove visual separators
-                piece.style.borderRadius = '0';
-                piece.style.boxShadow = 'none';
-                piece.style.border = 'none';
-                piece.style.cursor = 'default';
-            });
-            
-            // Add smooth pulse animation to the entire grid (single pulse, 2 seconds)
+            // Step 2: Fade away grid lines smoothly (starts after headers fade, takes 600ms)
             setTimeout(() => {
-                puzzleGrid.style.animation = 'puzzleCompletePulse 2s ease-in-out';
+                // Center the grid container
+                const puzzleContainer = document.querySelector('.puzzle-container');
+                if (puzzleContainer) {
+                    puzzleContainer.style.display = 'flex';
+                    puzzleContainer.style.flexDirection = 'column';
+                    puzzleContainer.style.justifyContent = 'center';
+                    puzzleContainer.style.alignItems = 'center';
+                    puzzleContainer.style.minHeight = '100vh';
+                    puzzleContainer.style.padding = '20px';
+                    puzzleContainer.style.width = '100%';
+                    puzzleContainer.style.maxWidth = '100%';
+                }
+                
+                // Fade grid background and gaps smoothly, ensure it's centered
+                puzzleGrid.style.transition = 'gap 0.6s ease, padding 0.6s ease, background 0.6s ease';
+                puzzleGrid.style.gap = '0';
+                puzzleGrid.style.padding = '0';
+                puzzleGrid.style.background = 'transparent';
+                puzzleGrid.style.borderRadius = '12px';
+                puzzleGrid.style.overflow = 'hidden';
+                puzzleGrid.style.margin = '0 auto';
+                puzzleGrid.style.maxWidth = 'min(90vw, 500px)';
+                puzzleGrid.style.width = '100%';
+                puzzleGrid.style.position = 'relative';
+                
+                // Fade slot borders smoothly
+                slots.forEach(slot => {
+                    slot.style.transition = 'border 0.6s ease, background-color 0.6s ease, border-radius 0.6s ease';
+                    setTimeout(() => {
+                        slot.style.border = 'none';
+                        slot.style.background = 'transparent';
+                        slot.style.borderRadius = '0';
+                    }, 50);
+                });
+                
+                // Mark grid as completed to prevent piece dragging
+                puzzleGrid.classList.add('completed');
+                
+                // Remove visual separators from pieces smoothly and disable dragging
+                const allPieces = puzzleGrid.querySelectorAll('.puzzle-piece');
+                allPieces.forEach((piece) => {
+                    piece.style.transition = 'border-radius 0.6s ease, box-shadow 0.6s ease, border 0.6s ease';
+                    piece.style.pointerEvents = 'none'; // Disable individual piece interactions
+                    piece.style.touchAction = 'none';
+                    setTimeout(() => {
+                        piece.style.borderRadius = '0';
+                        piece.style.boxShadow = 'none';
+                        piece.style.border = 'none';
+                        piece.style.cursor = 'default';
+                    }, 50);
+                });
+                
+                // Enable pointer events on the grid itself for pause functionality
+                puzzleGrid.style.pointerEvents = 'auto';
+                puzzleGrid.style.cursor = 'default';
+                puzzleGrid.style.touchAction = 'manipulation';
+                
+                // Add pause functionality - listen for pointer down on the whole grid
+                pauseHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (!isPaused && transitionTimeout && timeoutStartTime) {
+                        isPaused = true;
+                        
+                        // Calculate remaining time based on when the 2-second display period started
+                        const elapsed = Date.now() - timeoutStartTime;
+                        remainingTime = Math.max(0, 2000 - elapsed); // 2000ms = 2 seconds for image display
+                        
+                        // Clear the transition timeout
+                        clearTimeout(transitionTimeout);
+                        transitionTimeout = null;
+                    }
+                };
+                
+                // Add resume functionality - listen for pointer up on the whole grid
+                resumeHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (isPaused && remainingTime > 0) {
+                        isPaused = false;
+                        
+                        // Resume with remaining time (minimum 100ms to ensure it works)
+                        const timeToWait = Math.max(remainingTime, 100);
+                        
+                        timeoutStartTime = Date.now();
+                        transitionTimeout = setTimeout(() => {
+                            if (!isPaused) {
+                                // Remove pause/resume listeners before transitioning
+                                if (pauseHandler) {
+                                    puzzleGrid.removeEventListener('pointerdown', pauseHandler, { capture: true });
+                                    puzzleGrid.removeEventListener('touchstart', pauseHandler, { capture: true });
+                                }
+                                if (resumeHandler) {
+                                    puzzleGrid.removeEventListener('pointerup', resumeHandler, { capture: true });
+                                    puzzleGrid.removeEventListener('touchend', resumeHandler, { capture: true });
+                                    puzzleGrid.removeEventListener('pointercancel', resumeHandler, { capture: true });
+                                }
+                                showScreen('proposal');
+                            }
+                        }, timeToWait);
+                    }
+                };
+                
+                // Add listeners for both pointer and touch events on the grid (use capture to catch before pieces)
+                puzzleGrid.addEventListener('pointerdown', pauseHandler, { passive: false, capture: true });
+                puzzleGrid.addEventListener('touchstart', pauseHandler, { passive: false, capture: true });
+                puzzleGrid.addEventListener('pointerup', resumeHandler, { passive: false, capture: true });
+                puzzleGrid.addEventListener('touchend', resumeHandler, { passive: false, capture: true });
+                puzzleGrid.addEventListener('pointercancel', resumeHandler, { passive: false, capture: true });
             }, 400);
             
-            // After animation completes, show full image for 1 more second, then transition to proposal screen
+            // Step 3: After grid lines fade away (400ms + 600ms = 1000ms), show full clean image for 2 seconds, then transition
+            // Total timing: 400ms (hide elements) + 600ms (fade grid lines) + 2000ms (show image) = 3000ms
+            // Start the timeout after grid lines finish fading (at 1000ms)
             setTimeout(() => {
-                showScreen('proposal');
-            }, 3400);
+                // Set start time when the 2-second image display period begins
+                timeoutStartTime = Date.now();
+                remainingTime = 2000; // 2 seconds for showing the image
+                
+                transitionTimeout = setTimeout(() => {
+                    if (!isPaused) {
+                        // Remove pause/resume listeners before transitioning
+                        if (pauseHandler) {
+                            puzzleGrid.removeEventListener('pointerdown', pauseHandler, { capture: true });
+                            puzzleGrid.removeEventListener('touchstart', pauseHandler, { capture: true });
+                        }
+                        if (resumeHandler) {
+                            puzzleGrid.removeEventListener('pointerup', resumeHandler, { capture: true });
+                            puzzleGrid.removeEventListener('touchend', resumeHandler, { capture: true });
+                            puzzleGrid.removeEventListener('pointercancel', resumeHandler, { capture: true });
+                        }
+                        showScreen('proposal');
+                    }
+                }, remainingTime);
+            }, 1000); // Wait for grid lines to finish fading (400ms + 600ms)
         }
         
         // Hit test for drop target
@@ -283,6 +394,11 @@ function setupPuzzle() {
         
         // Pointer event handlers
         function onPointerDown(e) {
+            // Don't handle piece dragging if puzzle is completed
+            if (puzzleGrid.classList.contains('completed')) {
+                return;
+            }
+            
             const piece = e.target.closest('.puzzle-piece');
             if (!piece) return;
             
@@ -384,27 +500,11 @@ function setupPuzzle() {
         
         // Auto-solve function
         function solveAutomatically() {
-            // Fade out both the button and title together
+            // Disable the button to prevent multiple clicks (but don't fade it yet)
             const solveBtn = document.getElementById('btn-solve-auto');
-            const puzzleTitle = document.querySelector('.puzzle-title');
-            
             if (solveBtn) {
-                solveBtn.style.opacity = '0';
-                solveBtn.style.transform = 'scale(0.8)';
                 solveBtn.style.pointerEvents = 'none';
-                solveBtn.style.transition = 'opacity 0.4s ease, transform 0.3s ease';
-                setTimeout(() => {
-                    solveBtn.style.display = 'none';
-                }, 400);
-            }
-            
-            if (puzzleTitle) {
-                puzzleTitle.style.opacity = '0';
-                puzzleTitle.style.transform = 'translateY(-10px)';
-                puzzleTitle.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-                setTimeout(() => {
-                    puzzleTitle.style.display = 'none';
-                }, 400);
+                solveBtn.style.opacity = '0.6';
             }
             
             // Get all pieces from tray and grid
@@ -446,6 +546,7 @@ function setupPuzzle() {
                         if (index === allPieces.length - 1) {
                             setTimeout(() => {
                                 if (checkWin()) {
+                                    // Use the same completion animation as manual solve
                                     animatePuzzleCompletion();
                                 }
                             }, 500);
