@@ -61,17 +61,33 @@
             <div class="image-container">
                 <img id="yes-image" src="assets/cartoon-image.png" alt="Valentine's Day">
             </div>
-            <button class="btn btn-reset" onclick="resetApp()">Reset</button>
         </div>
     </div>
 
-    <!-- Screen 5: No Response -->
-    <div id="screen-no" class="screen">
+    <!-- Screen 5: Are You Sure (No Response) -->
+    <div id="screen-are-you-sure" class="screen">
         <div class="response-container">
-            <div class="no-gif-container">
-                <img id="no-gif" src="assets/sad.gif" alt="Sad" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'sad-animation\'><div class=\'sad-face\'><div class=\'sad-mouth\'></div></div></div>';">
+            <div class="video-container">
+                <video id="no-video" autoplay loop muted playsinline>
+                    <source src="assets/no-video.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
             </div>
-            <button class="btn btn-reset" onclick="resetApp()">Reset</button>
+            <div class="button-container">
+                <button id="btn-are-you-sure-yes" class="btn btn-yes">Yes</button>
+                <button id="btn-are-you-sure-no" class="btn btn-no">No</button>
+            </div>
+            <p class="are-you-sure-text">are you sure ??</p>
+        </div>
+    </div>
+
+    <!-- Screen 6: Oh My Goodness (After Are You Sure No) -->
+    <div id="screen-oh-my-goodness" class="screen">
+        <div class="response-container">
+            <h1 class="oh-my-goodness-text">Oh my goodness</h1>
+            <div class="image-container">
+                <img id="oh-my-goodness-image" src="assets/oh-my-goodness-image.png" alt="Oh my goodness">
+            </div>
         </div>
     </div>
 

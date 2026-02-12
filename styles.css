@@ -665,23 +665,57 @@ body {
     display: block;
 }
 
-/* Screen 5: No Response */
-.no-gif-container {
-    max-width: 400px;
+/* Screen 5: Are You Sure */
+.video-container {
+    max-width: 500px;
+    width: 90%;
     margin: 0 auto 30px;
-    animation: shake 0.5s ease-out;
-    min-height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
+    animation: fadeInScale 0.8s ease-out;
 }
 
-.no-gif-container img {
+.video-container video {
+    width: 100%;
+    height: auto;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: block;
+}
+
+.are-you-sure-text {
+    font-size: 28px;
+    color: #fff;
+    margin-top: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    animation: bounceIn 1s ease-out 0.6s both;
+    text-align: center;
+}
+
+/* Screen 6: Oh My Goodness */
+.oh-my-goodness-text {
+    font-size: 48px;
+    color: #fff;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    animation: bounceIn 1s ease-out;
+    text-align: center;
+}
+
+#screen-oh-my-goodness .image-container {
+    max-width: 500px;
+    margin: 0 auto;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.8s ease-out 0.3s both;
+}
+
+#screen-oh-my-goodness .image-container img {
     width: 100%;
     height: auto;
     display: block;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 /* Fallback sad animation if GIF is missing */
@@ -895,11 +929,23 @@ body {
         margin-bottom: 25px;
     }
     
-    .btn-reset {
-        width: 100%;
-        max-width: 200px;
-        padding: 15px 25px;
-        font-size: 18px;
+    .video-container {
+        max-width: 90%;
+        margin-bottom: 25px;
+    }
+    
+    .are-you-sure-text {
+        font-size: 24px;
+        margin-top: 15px;
+    }
+    
+    .oh-my-goodness-text {
+        font-size: 36px;
+        margin-bottom: 20px;
+    }
+    
+    #screen-oh-my-goodness .image-container {
+        max-width: 90%;
     }
 }
 
@@ -985,6 +1031,14 @@ body {
     
     .wohoo {
         font-size: 42px;
+    }
+    
+    .are-you-sure-text {
+        font-size: 22px;
+    }
+    
+    .oh-my-goodness-text {
+        font-size: 32px;
     }
     
     .btn {

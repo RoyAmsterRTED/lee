@@ -596,8 +596,24 @@ function setupButtons() {
         } catch (e) {
             console.log('Audio not available');
         }
-        showScreen('no');
+        showScreen('are-you-sure');
     });
+    
+    // Setup "Are You Sure" screen buttons
+    const areYouSureYesBtn = document.getElementById('btn-are-you-sure-yes');
+    const areYouSureNoBtn = document.getElementById('btn-are-you-sure-no');
+    
+    if (areYouSureYesBtn) {
+        areYouSureYesBtn.addEventListener('click', () => {
+            showScreen('yes');
+        });
+    }
+    
+    if (areYouSureNoBtn) {
+        areYouSureNoBtn.addEventListener('click', () => {
+            showScreen('oh-my-goodness');
+        });
+    }
 }
 
 // Show specific screen
