@@ -659,20 +659,18 @@ function setupButtons() {
     });
     
     document.getElementById('btn-no').addEventListener('click', () => {
-        // Stop background music immediately for awkward silence
+        // Stop background music
         if (bgMusic) {
             bgMusic.pause();
             bgMusic.currentTime = 0;
         }
         
-        // Show "no" screen immediately so video is in the document when we play (required for mobile autoplay with sound).
-        // Video must start in this same user gesture or mobile will block sound.
+        // Show "no" screen immediately so video is visible when we play (required for mobile: same user gesture + visible video to avoid black screen).
         const noScreen = document.getElementById('screen-no');
         const video = document.getElementById('no-video');
-        const overlay = document.getElementById('no-video-overlay');
         if (!noScreen || !video) return;
         
-        // Hide all other screens and show no screen right away (no setTimeout = same user gesture)
+        // Hide other screens and show no screen in same user gesture
         document.querySelectorAll('.screen').forEach((screen) => {
             if (screen.classList.contains('active')) {
                 screen.style.pointerEvents = 'none';
@@ -680,27 +678,18 @@ function setupButtons() {
                 setTimeout(() => screen.classList.remove('active'), 300);
             }
         });
-        if (overlay) {
-            overlay.classList.remove('hidden');
-        }
         noScreen.classList.add('active');
         noScreen.style.opacity = '1';
         noScreen.style.pointerEvents = 'auto';
         currentScreen = 'no';
         
-        // Start video with sound in this same click handler (mobile allows sound only from user gesture)
+        // Start video with sound in this same click (mobile allows sound only from user gesture). Video must be visible or some devices show black.
         video.currentTime = 0;
         video.muted = false;
         video.play().catch((e) => {
-            // If with-sound is blocked, start muted so at least video plays; user can tap video to unmute on some devices
             video.muted = true;
             video.play().catch((err) => console.log('Video play failed:', err));
         });
-        
-        // After 2 seconds of "awkward silence" (overlay covers video), reveal the video
-        setTimeout(() => {
-            if (overlay) overlay.classList.add('hidden');
-        }, 2000);
     });
 }
 
